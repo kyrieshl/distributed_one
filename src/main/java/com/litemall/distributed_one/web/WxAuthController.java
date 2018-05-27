@@ -6,12 +6,12 @@ import me.chanjar.weixin.common.exception.WxErrorException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.db.domain.LitemallUser;
+import org.linlinjava.litemall.db.domain.UserToken;
 import org.linlinjava.litemall.db.service.LitemallUserService;
 import org.linlinjava.litemall.db.util.JacksonUtil;
 import org.linlinjava.litemall.db.util.ResponseUtil;
 import com.litemall.distributed_one.dao.FullUserInfo;
 import com.litemall.distributed_one.dao.UserInfo;
-import com.litemall.distributed_one.dao.UserToken;
 import com.litemall.distributed_one.service.UserTokenManager;
 import com.litemall.distributed_one.util.IpUtil;
 import com.litemall.distributed_one.util.bcrypt.BCryptPasswordEncoder;
@@ -38,6 +38,8 @@ public class WxAuthController {
     @Autowired
     private WxMaService wxService;
 
+    @Autowired
+    private UserTokenManager userTokenManager;
     /**
      * 账号登录
      *
@@ -88,7 +90,7 @@ public class WxAuthController {
         userInfo.setAvatarUrl(user.getAvatar());
 
         // token
-        UserToken userToken = UserTokenManager.generateToken(user.getId());
+        UserToken userToken = userTokenManager.generateToken(user.getId());
 
         Map<Object, Object> result = new HashMap<Object, Object>();
         result.put("token", userToken.getToken());
@@ -170,7 +172,7 @@ public class WxAuthController {
         }
 
         // token
-        UserToken userToken = UserTokenManager.generateToken(user.getId());
+        UserToken userToken = userTokenManager.generateToken(user.getId());
 
         Map<Object, Object> result = new HashMap<Object, Object>();
         result.put("token", userToken.getToken());
@@ -252,7 +254,7 @@ public class WxAuthController {
         userInfo.setAvatarUrl(user.getAvatar());
 
         // token
-        UserToken userToken = UserTokenManager.generateToken(user.getId());
+        UserToken userToken = userTokenManager.generateToken(user.getId());
 
         Map<Object, Object> result = new HashMap<Object, Object>();
         result.put("token", userToken.getToken());

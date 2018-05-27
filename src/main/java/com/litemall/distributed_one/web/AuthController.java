@@ -3,9 +3,9 @@ package com.litemall.distributed_one.web;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.litemall.distributed_one.annotation.LoginAdmin;
-import com.litemall.distributed_one.dao.AdminToken;
 import com.litemall.distributed_one.service.AdminTokenManager;
 import com.litemall.distributed_one.util.bcrypt.BCryptPasswordEncoder;
+import org.linlinjava.litemall.db.domain.AdminToken;
 import org.linlinjava.litemall.db.domain.LitemallAdmin;
 import org.linlinjava.litemall.db.service.LitemallAdminService;
 import org.linlinjava.litemall.db.util.JacksonUtil;
@@ -27,6 +27,9 @@ public class AuthController {
 
     @Autowired
     private LitemallAdminService adminService;
+
+    @Autowired
+    private AdminTokenManager adminTokenManager;
 
     /*
      *  { username : value, password : value }
@@ -54,7 +57,7 @@ public class AuthController {
 
         Integer adminId = admin.getId();
         // token
-        AdminToken adminToken = AdminTokenManager.generateToken(adminId);
+        AdminToken adminToken = adminTokenManager.generateToken(adminId);
 
         return ResponseUtil.ok(adminToken.getToken());
     }

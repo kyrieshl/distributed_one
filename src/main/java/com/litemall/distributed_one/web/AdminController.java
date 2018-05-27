@@ -20,9 +20,12 @@ public class AdminController {
     @Autowired
     private LitemallAdminService adminService;
 
+    @Autowired
+    private AdminTokenManager adminTokenManager;
+
     @GetMapping("/info")
     public Object info(String token){
-        Integer adminId = AdminTokenManager.getUserId(token);
+        Integer adminId = adminTokenManager.getUserId(token);
         if(adminId == null){
             return ResponseUtil.badArgumentValue();
         }

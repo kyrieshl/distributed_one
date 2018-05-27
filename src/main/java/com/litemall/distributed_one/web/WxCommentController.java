@@ -2,9 +2,11 @@ package com.litemall.distributed_one.web;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.linlinjava.litemall.db.domain.LitemallComment;
-import org.linlinjava.litemall.db.service.LitemallCommentService;
-import org.linlinjava.litemall.db.service.LitemallCouponService;
-import org.linlinjava.litemall.db.service.LitemallUserService;
+import org.linlinjava.litemall.db.domain.LitemallOrder;
+import org.linlinjava.litemall.db.domain.LitemallOrderGoods;
+import org.linlinjava.litemall.db.service.*;
+import org.linlinjava.litemall.db.util.JacksonUtil;
+import org.linlinjava.litemall.db.util.OrderUtil;
 import org.linlinjava.litemall.db.util.ResponseUtil;
 import com.litemall.distributed_one.annotation.LoginUser;
 import com.litemall.distributed_one.dao.UserInfo;
@@ -24,6 +26,10 @@ public class WxCommentController {
     @Autowired
     private LitemallCommentService commentService;
     @Autowired
+    private LitemallOrderService orderService;
+    @Autowired
+    private LitemallOrderGoodsService orderGoodsService;
+    @Autowired
     private LitemallUserService userService;
     @Autowired
     private LitemallCouponService couponService;
@@ -37,10 +43,10 @@ public class WxCommentController {
      * 1. 如果用户没有购买过商品，则不能发表对该商品的评论
      * 2. 如果用户购买商品后规定时间内没有评论，则过期也不能再评论
      *
-     * @param userId 用户ID
-     * @param comment 评论内容
+     * @param userId 用户Id
+     * @param body 评论内容、订单Id
      * @return 发表评论操作结果
-     *   成功则
+     * 成功则
      *  {
      *      errno: 0,
      *      errmsg: '成功',
@@ -49,17 +55,42 @@ public class WxCommentController {
      *   失败则 { errno: XXX, errmsg: XXX }
      */
     @PostMapping("post")
-    public Object post(@LoginUser Integer userId, @RequestBody LitemallComment comment) {
+    public Object post(@LoginUser Integer userId,@RequestBody String body) {
         if(userId == null){
             return ResponseUtil.unlogin();
         }
+        LitemallComment comment = new LitemallComment();
+        comment.setContent(JacksonUtil.parseString(body,"content"));
+        comment.setHasPicture(JacksonUtil.parseBoolean(body,"hasPicture"));
+        comment.setPicUrls(JacksonUtil.parseStringList(body,"picUrls"));
+        comment.setStar(JacksonUtil.parseShort(body,"star"));
+        comment.setTypeId(JacksonUtil.parseByte(body,"typeId"));
+        comment.setValueId(JacksonUtil.parseInteger(body,"valueId"));
+        comment.setAddTime(LocalDateTime.now());
+        comment.setUserId(userId);
         if(comment == null){
             return ResponseUtil.badArgument();
         }
-
-        comment.setAddTime(LocalDateTime.now());
-        comment.setUserId(userId);
         commentService.save(comment);
+
+        Integer orderId = JacksonUtil.parseInteger(body,"orderId");
+//       Integer orderId = Integer.parseInt(request.getParameter("orderId"));
+        LitemallOrder order = orderService.findById(orderId);
+        if(order == null){
+            return ResponseUtil.badArgument();
+        }
+        if(!order.getUserId().equals(userId)){
+            return ResponseUtil.badArgumentValue();
+        }
+        order.setOrderStatus(OrderUtil.STATUS_EVALUATE);
+        orderService.update(order);
+
+//        设置订单具体商品评价状态
+        Integer goodsId = JacksonUtil.parseInteger(body,"valueId");
+        LitemallOrderGoods orderGoods = orderGoodsService.findByOidAndGid(orderId,goodsId).get(0);
+        orderGoods.setEvaluateFlag(false);
+        orderGoodsService.update(orderGoods);
+
         return ResponseUtil.ok(comment);
     }
 
