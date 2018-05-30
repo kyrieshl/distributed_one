@@ -72,7 +72,7 @@ public class WxCommentController {
             return ResponseUtil.badArgument();
         }
         commentService.save(comment);
-
+d
         Integer orderId = JacksonUtil.parseInteger(body,"orderId");
 //       Integer orderId = Integer.parseInt(request.getParameter("orderId"));
         LitemallOrder order = orderService.findById(orderId);
