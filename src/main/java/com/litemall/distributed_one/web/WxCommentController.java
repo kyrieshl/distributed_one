@@ -82,13 +82,24 @@ public class WxCommentController {
         if(!order.getUserId().equals(userId)){
             return ResponseUtil.badArgumentValue();
         }
-        order.setOrderStatus(OrderUtil.STATUS_EVALUATE);
-        orderService.update(order);
 
 //        设置订单具体商品评价状态
         Integer goodsId = JacksonUtil.parseInteger(body,"valueId");
         LitemallOrderGoods orderGoods = orderGoodsService.findByOidAndGid(orderId,goodsId).get(0);
         orderGoods.setEvaluateFlag(false);
+
+        Boolean flag =false;
+        List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(orderId);
+        for(LitemallOrderGoods litemallOrderGoods : orderGoodsList){
+            if(litemallOrderGoods.getEvaluateFlag()){
+                flag = true;
+                break;
+            }
+        }
+        if(!flag){
+            order.setOrderStatus(OrderUtil.STATUS_EVALUATE);
+        }
+        orderService.update(order);
         orderGoodsService.update(orderGoods);
 
         return ResponseUtil.ok(comment);
