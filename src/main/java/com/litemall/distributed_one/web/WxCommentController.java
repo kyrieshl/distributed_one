@@ -100,6 +100,7 @@ public class WxCommentController {
             order.setOrderStatus(OrderUtil.STATUS_EVALUATE);
         }
         orderService.update(order);
+        
         orderGoodsService.update(orderGoods);
 
         return ResponseUtil.ok(comment);
