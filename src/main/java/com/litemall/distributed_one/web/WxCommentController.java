@@ -90,17 +90,22 @@ public class WxCommentController {
 
         Boolean flag =false;
         List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(orderId);
-        for(LitemallOrderGoods litemallOrderGoods : orderGoodsList){
-            if(litemallOrderGoods.getEvaluateFlag()){
-                flag = true;
-                break;
+        if(orderGoodsList.size() == 1)
+            order.setOrderStatus(OrderUtil.STATUS_EVALUATE);
+        else{
+            for(LitemallOrderGoods litemallOrderGoods : orderGoodsList){
+                if(litemallOrderGoods.getEvaluateFlag()){
+                    flag = true;
+                    break;
+                }
+            }
+            if(!flag){
+                order.setOrderStatus(OrderUtil.STATUS_EVALUATE);
             }
         }
-        if(!flag){
-            order.setOrderStatus(OrderUtil.STATUS_EVALUATE);
-        }
+
         orderService.update(order);
-        
+
         orderGoodsService.update(orderGoods);
 
         return ResponseUtil.ok(comment);
